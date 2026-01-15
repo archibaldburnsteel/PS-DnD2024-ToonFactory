@@ -42,7 +42,7 @@ The `StoryFactory` weaves together Species identity, Class archetypes, and curat
 2. Import the module:
 
 ```powershell
-Import-Module ./PS-DnD2024-ToonFactory.psd1
+Import-Module .\PS-DnD2024-ToonFactory.psd1
 
 # Generate a random character
 $toon = New-DnDCharacter
