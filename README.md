@@ -10,7 +10,7 @@
 Every subsystem—abilities, skills, species, backgrounds, and narrative hooks—is modeled using PowerShell classes. This keeps the engine modular and extensible.
 
 ### 📈 Optimization Engine
-The factory doesn't just roll dice. Characters assign their highest rolls to:
+The factory doesn't just roll dice it assigns the highest rolls to:
 * **Primary Ability:** Based on class requirements.
 * **Constitution:** To ensure survivability from Level 1.
 
