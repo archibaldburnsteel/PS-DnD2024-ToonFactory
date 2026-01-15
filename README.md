@@ -1,6 +1,6 @@
 # PS-DnD2024-ToonFactory
 
-> **"I play a lot of one-shots and I found character creation to be a chore."**
+> **"I play a lot of one-shots and I found character creation to be a timeconsumeing."**
 > This is my first major PowerShell module. I'm a big DnD fan and built this to learn classes. Feedback is welcome, but please be constructive.
 > This project is a PowerShell-driven character factory for the 2024 D&D ruleset. It blends strong typing, procedural generation, and narrative logic to create fully-formed heroes with unique backstories in seconds.
 
@@ -45,7 +45,7 @@ The `StoryFactory` weaves together Species identity, Class archetypes, and curat
 Import-Module ./PS-DnD2024-ToonFactory.psd1
 
 # Generate a random character
-$toon = [ToonFactory]::Create()
+$toon = New-DnDCharacter
 
 # Print the character sheet to the console
 $toon.CharacterSheet()
