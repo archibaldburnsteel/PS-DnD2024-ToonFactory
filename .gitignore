@@ -1,0 +1,26 @@
+# --- PowerShell Specific ---
+# Ignore local module data and temporary sessions
+.pssession
+*.log
+*.err
+*.out
+
+# --- VS Code Specific ---
+# Ignore the hidden settings and history folder
+.vscode/
+.history/
+
+# --- Windows Specific ---
+# Ignore system thumbnail files and desktop layout files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# --- Infrastructure/Testing ---
+# If you eventually use Pester for testing
+TestResults/
+
+# --- Personal/Temp Files ---
+# Ignore any temporary character exports or text files you create while testing
+*.txt
+*.tmp
