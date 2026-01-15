@@ -15,7 +15,7 @@ The factory doesn't just roll dice. Characters assign their highest rolls to:
 * **Constitution:** To ensure survivability from Level 1.
 
 ### 📜 Narrative StoryFactory
-The `StoryFactory` weaves together Species identity, Class archetypes, and curated "Inciting Incidents" into a cohesive, three-act origin story that reads like a campaign hook.
+The `StoryFactory` weaves together Species identity, Class archetypes, and curated "Inciting Incidents" into a cohesive, three-act origin story that functions as a campaign hook.
 
 ---
 
