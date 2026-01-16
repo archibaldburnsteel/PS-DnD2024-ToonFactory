@@ -15,7 +15,13 @@
     Required Modules:
 .LINK
 #>
-
+$Script:Rng = [Random]::new()
+$Script:HumanoidTypes = ([Humanoid].Assembly.GetTypes()).Where({ $_.IsSubClassOf([Humanoid]) })
+$Script:BackgroundTypes = ([Background].Assembly.GetTypes()).Where({ $_.IsSubclassOf([Background]) })
+$Script:ClassTypes = ([DnDClass].Assembly.GetTypes()).Where({ $_.IsSubclassOf([DnDClass]) })
+$Script:AllSkillNames = [Skill]::SkillLookup.Keys
+$Script:BaseStats = [string[]]('Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma')
+$languages = [enum]::GetValues([Languages])
 enum GamingSets {
     dice
     dragonchess
@@ -139,8 +145,15 @@ class Skill {
         $this.SkillName = $name
         $this.character = $character
         $abilityName = [Skill]::SkillLookup[$name]
-        $this.Ability = $character.$abilityName
-        $this.Proficient = $name -in $character.SkillProficiencies
+        switch ($abilityName) {
+            "Strength" { $this.Ability = $character.Strength }
+            "Dexterity" { $this.Ability = $character.Dexterity }
+            "Constitution" { $this.Ability = $character.Constitution }
+            "Intelligence" { $this.Ability = $character.Intelligence }
+            "Wisdom" { $this.Ability = $character.Wisdom }
+            "Charisma" { $this.Ability = $character.Charisma }
+        }
+        $this.Proficient = $character.SkillProficiencies.Contains($name)
     }
 
     [int] GetTotal() {
@@ -164,7 +177,8 @@ class DnDClass {
     [int]$ExperiencePoints
     [int]$HitPointDie
     [System.Collections.Generic.List[string]]$SavingThrowProficiencies
-    [System.Collections.Generic.List[string]]$SkillProficiencies
+    #[System.Collections.Generic.List[string]]$SkillProficiencies
+    [System.Collections.Generic.HashSet[string]]$SkillProficiencies = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
     [System.Collections.Generic.List[string]]$WeaponProficiencies
     [Humanoid]$Species
     [System.Collections.Generic.List[string]]$KnownLanguages
@@ -192,8 +206,16 @@ class DnDClass {
         $this.ArmorTraining = [System.Collections.Generic.List[string]]::New()
         $this.ClassFeatures = [System.Collections.Generic.List[string]]::New()
         $this.KnownLanguages = [System.Collections.Generic.List[string]]::New()
-        $languages = [enum]::GetValues([Languages])
-        $this.KnownLanguages.AddRange([string[]](Get-Random -InputObject $languages -Count 3))
+        #$languages = [enum]::GetValues([Languages])
+        $count = $Script:languages.Count
+        $SelectedIndices = New-Object System.Collections.Generic.HashSet[int]
+        #$this.KnownLanguages.AddRange([string[]](Get-Random -InputObject $Script:languages -Count 3))
+        while ($SelectedIndices.Count -lt 3) {
+            [void]$SelectedIndices.Add($Script:Rng.Next(0, $count))
+        }
+        foreach ($index in $SelectedIndices) {
+            $this.KnownLanguages.Add($Script:languages[$index].ToString())
+        }
         $this.Skills = @{}
 
     }
@@ -209,15 +231,29 @@ class DnDClass {
         $this.TotalAbilityScores = $this.GetTotalAbilityScores()
         $this.SavingThrowProficiencies = [System.Collections.Generic.List[string]]::New()
         $this.SkillProficiencies = [System.Collections.Generic.List[string]]::New()
-        $languages = [enum]::GetValues([Languages])
-        $this.KnownLanguages.AddRange([string[]](Get-Random -InputObject $languages -Count 3))
         $this.Skills = @{}
+        $count = $Script:languages.Count
+        $SelectedIndices = New-Object System.Collections.Generic.HashSet[int]
+        #$this.KnownLanguages.AddRange([string[]](Get-Random -InputObject $Script:languages -Count 3))
+        while ($SelectedIndices.Count -lt 3) {
+            [void]$SelectedIndices.Add($Script:Rng.Next(0, $count))
+        }
+        foreach ($index in $SelectedIndices) {
+            $this.KnownLanguages.Add($Script:languages[$index].ToString())
+        }
         $this.BuildSkills()
     }
 
     [int] RollStats() {
-        $Rolls = 1..4 | ForEach-Object { Get-Random -Minimum 1 -Maximum 7 }
-        return ($Rolls | Measure-Object -Sum).Sum - ($Rolls | Measure-Object -Minimum).Minimum
+        $Script:Rng = [Random]::new()
+        $Sum = 0
+        $Min = 7
+        for ($i = 0; $i -lt 4; $i++) {
+            $CurrentRoll = $Script:Rng.Next(1, 7)
+            $Sum += $CurrentRoll
+            if ($CurrentRoll -lt $Min) { $Min = $CurrentRoll }
+        }
+        return $Sum - $Min
     }
 
     [int] GetTotalAbilityScores() {
@@ -225,38 +261,20 @@ class DnDClass {
     }
 
     BuildSkills() {
-        $skillNames = @(
-            "Athletics",
-            "Acrobatics",
-            "Sleight of Hand",
-            "Stealth",
-            "Arcana",
-            "History",
-            "Investigation",
-            "Nature",
-            "Religion",
-            "Animal Handling",
-            "Insight",
-            "Medicine",
-            "Perception",
-            "Survival",
-            "Deception",
-            "Intimidation",
-            "Performance",
-            "Persuasion"
-        )
-        foreach ($name in $skillNames) {
+        foreach ($name in $Script:AllSkillNames) {
             $this.Skills[$name] = [Skill]::new($name, $this)
         }
     }
 
     hidden [void] GenerateOptimizedStats() {
-        # Roll and sort stats (highest first) for optimal distribution
-        $pool = (1..6 | ForEach-Object { $this.RollStats() }) | Sort-Object -Descending
-
+        $pool = [int[]]::new(6)
+        for ($i = 0; $i -lt 6; $i++) {
+            $pool[$i] = $this.RollStats()
+        }
+        [Array]::Sort($pool)
+        [Array]::Reverse($pool)
         # Assign highest to primary, second-highest to Constitution
         $this.($this.PrimaryAbility) = $pool[0]
-
         # Constitution is critical for all classes
         if ($this.PrimaryAbility -ne 'Constitution') {
             $this.Constitution = $pool[1]
@@ -264,11 +282,8 @@ class DnDClass {
         } else {
             $poolIndex = 1
         }
-
         # Distribute remaining stats
-        $remainingStats = @('Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma') |
-        Where-Object { $_ -ne $this.PrimaryAbility -and $_ -ne 'Constitution' }
-
+        $remainingStats = $Script:BaseStats.Where({ $_ -ne $this.PrimaryAbility -and $_ -ne 'Constitution' })
         foreach ($statName in $remainingStats) {
             $this.$statName = $pool[$poolIndex++]
         }
@@ -346,10 +361,16 @@ Class Barbarian : DnDClass {
         }
         $this.TotalAbilityScores = $this.GetTotalAbilityScores()
         $this.SavingThrowProficiencies.AddRange([string[]]("Strength", "Constitution"))
-        $Skills = @("Animal Handling", "Athletics", "Intimidation", "Nature", "Perception", "Survival")
-        $Skills = $Skills | Where-Object { $_ -ne $this.BackGround.SkillProficiencies[0] -and $_ -ne $this.BackGround.SkillProficiencies[1] }
-        $this.SkillProficiencies.AddRange([string[]](Get-Random -InputObject $Skills -Count 2))
-        $this.SkillProficiencies.AddRange($this.BackGround.SkillProficiencies)
+        $skillPool = @("Animal Handling", "Athletics", "Intimidation", "Nature", "Perception", "Survival")
+        $available = $skillPool.Where({ -not $this.BackGround.SkillProficiencies.Contains($_) })
+        $count = $available.Count
+        if ($count -ge 2) {
+            $idx1 = $Script:Rng.Next(0, $count)
+            do { $idx2 = $Script:Rng.Next(0, $count) } while ($idx2 -eq $idx1)
+            [void]$this.SkillProficiencies.Add($available[$idx1])
+            [void]$this.SkillProficiencies.Add($available[$idx2])
+        }
+        $this.SkillProficiencies.UnionWith($this.BackGround.SkillProficiencies)
         $this.WeaponProficiencies.AddRange([string[]]("Simple", "Martial"))
         $this.ArmorTraining.AddRange([string[]]("Light", "Medium", "Shields"))
         $this.ClassFeatures.AddRange([string[]]("Rage", "Unarmored Defense", "Weapon Mastery"))
@@ -372,10 +393,16 @@ Class Bard : DnDClass {
         }
         $this.TotalAbilityScores = $this.GetTotalAbilityScores()
         $this.SavingThrowProficiencies.AddRange([string[]]("Dexterity", "Charisma"))
-        $Skills = @("Acrobatics", "Animal Handling", "Arcana", "Athletics", "Deception", "History", "Insight", "Intimidation", "Investigation", "Medicine", "Nature", "Perception", "Performance", "Persuasion", "Religion", "Sleight Of Hand", "Stealth", "Survival")
-        $Skills = $Skills | Where-Object { $_ -ne $this.BackGround.SkillProficiencies[0] -and $_ -ne $this.BackGround.SkillProficiencies[1] }
-        $this.SkillProficiencies.AddRange([string[]](Get-Random -InputObject $Skills -Count 3))
-        $this.SkillProficiencies.AddRange($this.BackGround.SkillProficiencies)
+        $skillPool = @("Acrobatics", "Animal Handling", "Arcana", "Athletics", "Deception", "History", "Insight", "Intimidation", "Investigation", "Medicine", "Nature", "Perception", "Performance", "Persuasion", "Religion", "Sleight Of Hand", "Stealth", "Survival")
+        $available = $skillPool.Where({ -not $this.BackGround.SkillProficiencies.Contains($_) })
+        $count = $available.Count
+        if ($count -ge 2) {
+            $idx1 = $Script:Rng.Next(0, $count)
+            do { $idx2 = $Script:Rng.Next(0, $count) } while ($idx2 -eq $idx1)
+            [void]$this.SkillProficiencies.Add($available[$idx1])
+            [void]$this.SkillProficiencies.Add($available[$idx2])
+        }
+        $this.SkillProficiencies.UnionWith($this.BackGround.SkillProficiencies)
         $this.WeaponProficiencies.Add("Simple")
         $this.ArmorTraining.Add("Light")
         $this.ClassFeatures.AddRange([string[]]("Bardic Inspiration", "Spellcasting"))
@@ -398,10 +425,16 @@ Class Cleric : DnDClass {
         }
         $this.TotalAbilityScores = $this.GetTotalAbilityScores()
         $this.SavingThrowProficiencies.AddRange([string[]]("Wisdom", "Charisma"))
-        $Skills = @("History", "Insight", "Medicine", "Persuasion", "Religion")
-        $Skills = $Skills | Where-Object { $_ -ne $this.BackGround.SkillProficiencies[0] -and $_ -ne $this.BackGround.SkillProficiencies[1] }
-        $this.SkillProficiencies.AddRange([string[]](Get-Random -InputObject $Skills -Count 2))
-        $this.SkillProficiencies.AddRange($this.BackGround.SkillProficiencies)
+        $skillPool = @("History", "Insight", "Medicine", "Persuasion", "Religion")
+        $available = $skillPool.Where({ -not $this.BackGround.SkillProficiencies.Contains($_) })
+        $count = $available.Count
+        if ($count -ge 2) {
+            $idx1 = $Script:Rng.Next(0, $count)
+            do { $idx2 = $Script:Rng.Next(0, $count) } while ($idx2 -eq $idx1)
+            [void]$this.SkillProficiencies.Add($available[$idx1])
+            [void]$this.SkillProficiencies.Add($available[$idx2])
+        }
+        $this.SkillProficiencies.UnionWith($this.BackGround.SkillProficiencies)
         $this.WeaponProficiencies.AddRange([string[]]("Simple"))
         $this.ArmorTraining.AddRange([string[]]("Light", "Medium", "Shields"))
         $choices = @("Protector", "Thamaturge")
@@ -426,10 +459,16 @@ Class Druid : DnDClass {
         }
         $this.TotalAbilityScores = $this.GetTotalAbilityScores()
         $this.SavingThrowProficiencies.AddRange([string[]]("Wisdom", "Intelligence"))
-        $Skills = @("Animal Handling", "Arcana", "Insight", "Medicine", "Nature", "Perception", "Religion", "Survival")
-        $Skills = $Skills | Where-Object { $_ -ne $this.BackGround.SkillProficiencies[0] -and $_ -ne $this.BackGround.SkillProficiencies[1] }
-        $this.SkillProficiencies.AddRange([string[]](Get-Random -InputObject $Skills -Count 2))
-        $this.SkillProficiencies.AddRange($this.BackGround.SkillProficiencies)
+        $skillPool = @("Animal Handling", "Arcana", "Insight", "Medicine", "Nature", "Perception", "Religion", "Survival")
+        $available = $skillPool.Where({ -not $this.BackGround.SkillProficiencies.Contains($_) })
+        $count = $available.Count
+        if ($count -ge 2) {
+            $idx1 = $Script:Rng.Next(0, $count)
+            do { $idx2 = $Script:Rng.Next(0, $count) } while ($idx2 -eq $idx1)
+            [void]$this.SkillProficiencies.Add($available[$idx1])
+            [void]$this.SkillProficiencies.Add($available[$idx2])
+        }
+        $this.SkillProficiencies.UnionWith($this.BackGround.SkillProficiencies)
         $this.WeaponProficiencies.AddRange([string[]]("Simple"))
         $this.ArmorTraining.AddRange([string[]]("Light", "Shields"))
         $choice = @("Magician", "Warden")
@@ -455,10 +494,16 @@ Class Fighter : DnDClass {
         }
         $this.TotalAbilityScores = $this.GetTotalAbilityScores()
         $this.SavingThrowProficiencies.AddRange([string[]]("Strength", "Constitution"))
-        $Skills = @("Acrobatics", "Animal Handling", "Athletics", "History", "Insight", "Intimidation", "Persuasion", "Perception", "Survival")
-        $Skills = $Skills | Where-Object { $_ -ne $this.BackGround.SkillProficiencies[0] -and $_ -ne $this.BackGround.SkillProficiencies[1] }
-        $this.SkillProficiencies.AddRange([string[]](Get-Random -InputObject $Skills -Count 2))
-        $this.SkillProficiencies.AddRange($this.BackGround.SkillProficiencies)
+        $skillpool = @("Acrobatics", "Animal Handling", "Athletics", "History", "Insight", "Intimidation", "Persuasion", "Perception", "Survival")
+        $available = $skillPool.Where({ -not $this.BackGround.SkillProficiencies.Contains($_) })
+        $count = $available.Count
+        if ($count -ge 2) {
+            $idx1 = $Script:Rng.Next(0, $count)
+            do { $idx2 = $Script:Rng.Next(0, $count) } while ($idx2 -eq $idx1)
+            [void]$this.SkillProficiencies.Add($available[$idx1])
+            [void]$this.SkillProficiencies.Add($available[$idx2])
+        }
+        $this.SkillProficiencies.UnionWith($this.BackGround.SkillProficiencies)
         $this.WeaponProficiencies.AddRange([string[]]("Simple", "Martial"))
         $this.ArmorTraining.AddRange([string[]]("Light", "Medium", "Heavy", "Shields"))
         $choice = @("Archery", "Blind Fighting", "Defense", "Dueling", "Great Weapon", "Interception", "Protection", "Thrown Weapon", "Two-Weapon", "Unarmed")
@@ -484,10 +529,16 @@ Class Monk : DnDClass {
         }
         $this.TotalAbilityScores = $this.GetTotalAbilityScores()
         $this.SavingThrowProficiencies.AddRange([string[]]("Strength", "Dexterity"))
-        $Skills = @("Acrobatics", "Athletics", "History", "Insight", "Religion", "Stealth")
-        $Skills = $Skills | Where-Object { $_ -ne $this.BackGround.SkillProficiencies[0] -and $_ -ne $this.BackGround.SkillProficiencies[1] }
-        $this.SkillProficiencies.AddRange([string[]](Get-Random -InputObject $Skills -Count 2))
-        $this.SkillProficiencies.AddRange($this.BackGround.SkillProficiencies)
+        $skillPool = @("Acrobatics", "Athletics", "History", "Insight", "Religion", "Stealth")
+        $available = $skillPool.Where({ -not $this.BackGround.SkillProficiencies.Contains($_) })
+        $count = $available.Count
+        if ($count -ge 2) {
+            $idx1 = $Script:Rng.Next(0, $count)
+            do { $idx2 = $Script:Rng.Next(0, $count) } while ($idx2 -eq $idx1)
+            [void]$this.SkillProficiencies.Add($available[$idx1])
+            [void]$this.SkillProficiencies.Add($available[$idx2])
+        }
+        $this.SkillProficiencies.UnionWith($this.BackGround.SkillProficiencies)
         $this.WeaponProficiencies.AddRange([string[]]("Simple", "Martial"))
         $this.ArmorTraining.AddRange([string[]]("None"))
         $this.ClassFeatures.AddRange([string[]]("Martial Arts", "Unarmored Defense"))
@@ -511,10 +562,16 @@ Class Paladin : DnDClass {
         }
         $this.TotalAbilityScores = $this.GetTotalAbilityScores()
         $this.SavingThrowProficiencies.AddRange([string[]]("Wisdom", "Charisma"))
-        $Skills = @("Athletics", "Insight", "Intimidation", "Medicine", "Persuasion", "Religion")
-        $Skills = $Skills | Where-Object { $_ -ne $this.BackGround.SkillProficiencies[0] -and $_ -ne $this.BackGround.SkillProficiencies[1] }
-        $this.SkillProficiencies.AddRange([string[]](Get-Random -InputObject $Skills -Count 2))
-        $this.SkillProficiencies.AddRange($this.BackGround.SkillProficiencies)
+        $skillPool = @("Athletics", "Insight", "Intimidation", "Medicine", "Persuasion", "Religion")
+        $available = $skillPool.Where({ -not $this.BackGround.SkillProficiencies.Contains($_) })
+        $count = $available.Count
+        if ($count -ge 2) {
+            $idx1 = $Script:Rng.Next(0, $count)
+            do { $idx2 = $Script:Rng.Next(0, $count) } while ($idx2 -eq $idx1)
+            [void]$this.SkillProficiencies.Add($available[$idx1])
+            [void]$this.SkillProficiencies.Add($available[$idx2])
+        }
+        $this.SkillProficiencies.UnionWith($this.BackGround.SkillProficiencies)
         $this.WeaponProficiencies.AddRange([string[]]("Simple", "Martial"))
         $this.ArmorTraining.AddRange([string[]]("Light", "Medium", "Heavy", "Shields"))
         $this.ClassFeatures.AddRange([string[]]("Lay On Hands", "Spellcasting", "Weapon Mastery"))
@@ -538,10 +595,16 @@ Class Ranger : DnDClass {
         }
         $this.TotalAbilityScores = $this.GetTotalAbilityScores()
         $this.SavingThrowProficiencies.AddRange([string[]]("Strength", "Dexterity"))
-        $Skills = @("Animal Handling", "Athletics", "Insight", "Investigation", "Nature", "Perception", "Stealth", "Survival")
-        $Skills = $Skills | Where-Object { $_ -ne $this.BackGround.SkillProficiencies[0] -and $_ -ne $this.BackGround.SkillProficiencies[1] }
-        $this.SkillProficiencies.AddRange([string[]](Get-Random -InputObject $Skills -Count 2))
-        $this.SkillProficiencies.AddRange($this.BackGround.SkillProficiencies)
+        $skillPool = @("Animal Handling", "Athletics", "Insight", "Investigation", "Nature", "Perception", "Stealth", "Survival")
+        $available = $skillPool.Where({ -not $this.BackGround.SkillProficiencies.Contains($_) })
+        $count = $available.Count
+        if ($count -ge 2) {
+            $idx1 = $Script:Rng.Next(0, $count)
+            do { $idx2 = $Script:Rng.Next(0, $count) } while ($idx2 -eq $idx1)
+            [void]$this.SkillProficiencies.Add($available[$idx1])
+            [void]$this.SkillProficiencies.Add($available[$idx2])
+        }
+        $this.SkillProficiencies.UnionWith($this.BackGround.SkillProficiencies)
         $this.WeaponProficiencies.AddRange([string[]]("Simple", "Martial"))
         $this.ArmorTraining.AddRange([string[]]("Light", "Medium", "Shields"))
         $this.ClassFeatures.AddRange([string[]]("Spellcasting", "Favored Enemy", "Weapon Mastery"))
@@ -564,10 +627,16 @@ Class Rogue : DnDClass {
         }
         $this.TotalAbilityScores = $this.GetTotalAbilityScores()
         $this.SavingThrowProficiencies.AddRange([string[]]("Dexterity", "Intelligence"))
-        $Skills = @("Acrobatics", "Athletics", "Deception", "Insight", "Intimidation", "Investigation", "Perception", "Persuasion", "Sleight of Hand", "Stealth")
-        $Skills = $Skills | Where-Object { $_ -ne $this.BackGround.SkillProficiencies[0] -and $_ -ne $this.BackGround.SkillProficiencies[1] }
-        $this.SkillProficiencies.AddRange([string[]](Get-Random -InputObject $Skills -Count 4))
-        $this.SkillProficiencies.AddRange($this.BackGround.SkillProficiencies)
+        $skillPool = @("Acrobatics", "Athletics", "Deception", "Insight", "Intimidation", "Investigation", "Perception", "Persuasion", "Sleight of Hand", "Stealth")
+        $available = $skillPool.Where({ -not $this.BackGround.SkillProficiencies.Contains($_) })
+        $count = $available.Count
+        if ($count -ge 2) {
+            $idx1 = $Script:Rng.Next(0, $count)
+            do { $idx2 = $Script:Rng.Next(0, $count) } while ($idx2 -eq $idx1)
+            [void]$this.SkillProficiencies.Add($available[$idx1])
+            [void]$this.SkillProficiencies.Add($available[$idx2])
+        }
+        $this.SkillProficiencies.UnionWith($this.BackGround.SkillProficiencies)
         $this.WeaponProficiencies.AddRange([string[]]("Simple", "Martial"))
         $this.ArmorTraining.AddRange([string[]]("Light"))
         $this.ClassFeatures.AddRange([string[]]("Expertise", "Sneak Attack", "Weapon Mastery", "Thieves' Cant"))
@@ -590,10 +659,16 @@ Class Sorcerer : DnDClass {
         }
         $this.TotalAbilityScores = $this.GetTotalAbilityScores()
         $this.SavingThrowProficiencies.AddRange([string[]]("Constitution", "Charisma"))
-        $Skills = @("Arcana", "Deception", "Insight", "Intimidation", "Persuasion", "Religion")
-        $Skills = $Skills | Where-Object { $_ -ne $this.BackGround.SkillProficiencies[0] -and $_ -ne $this.BackGround.SkillProficiencies[1] }
-        $this.SkillProficiencies.AddRange([string[]](Get-Random -InputObject $Skills -Count 2))
-        $this.SkillProficiencies.AddRange($this.BackGround.SkillProficiencies)
+        $skillPool = @("Arcana", "Deception", "Insight", "Intimidation", "Persuasion", "Religion")
+        $available = $skillPool.Where({ -not $this.BackGround.SkillProficiencies.Contains($_) })
+        $count = $available.Count
+        if ($count -ge 2) {
+            $idx1 = $Script:Rng.Next(0, $count)
+            do { $idx2 = $Script:Rng.Next(0, $count) } while ($idx2 -eq $idx1)
+            [void]$this.SkillProficiencies.Add($available[$idx1])
+            [void]$this.SkillProficiencies.Add($available[$idx2])
+        }
+        $this.SkillProficiencies.UnionWith($this.BackGround.SkillProficiencies)
         $this.WeaponProficiencies.AddRange([string[]]("Simple"))
         $this.ArmorTraining.AddRange([string[]]("None"))
         $this.ClassFeatures.AddRange([string[]]("Spellcasting", "Innate Sorcery"))
@@ -616,10 +691,16 @@ Class Warlock : DnDClass {
         }
         $this.TotalAbilityScores = $this.GetTotalAbilityScores()
         $this.SavingThrowProficiencies.AddRange([string[]]("Wisdom", "Charisma"))
-        $Skills = @("Arcana", "Deception", "History", "Intimidation", "Investigation", "Nature", "Religion")
-        $Skills = $Skills | Where-Object { $_ -ne $this.BackGround.SkillProficiencies[0] -and $_ -ne $this.BackGround.SkillProficiencies[1] }
-        $this.SkillProficiencies.AddRange([string[]](Get-Random -InputObject $Skills -Count 2))
-        $this.SkillProficiencies.AddRange($this.BackGround.SkillProficiencies)
+        $skillPool = @("Arcana", "Deception", "History", "Intimidation", "Investigation", "Nature", "Religion")
+        $available = $skillPool.Where({ -not $this.BackGround.SkillProficiencies.Contains($_) })
+        $count = $available.Count
+        if ($count -ge 2) {
+            $idx1 = $Script:Rng.Next(0, $count)
+            do { $idx2 = $Script:Rng.Next(0, $count) } while ($idx2 -eq $idx1)
+            [void]$this.SkillProficiencies.Add($available[$idx1])
+            [void]$this.SkillProficiencies.Add($available[$idx2])
+        }
+        $this.SkillProficiencies.UnionWith($this.BackGround.SkillProficiencies)
         $this.WeaponProficiencies.AddRange([string[]]("Simple"))
         $this.ArmorTraining.AddRange([string[]]("Light"))
         $this.ClassFeatures.AddRange([string[]]("Eldrith Invocations", "Pact Magic"))
@@ -642,10 +723,16 @@ Class Wizard : DnDClass {
         }
         $this.TotalAbilityScores = $this.GetTotalAbilityScores()
         $this.SavingThrowProficiencies.AddRange([string[]]("Intelligence", "Wisdom"))
-        $Skills = @("Arcana", "History", "Insight", "Investigation", "Medicine", "Nature", "Religion")
-        $Skills = $Skills | Where-Object { $_ -ne $this.BackGround.SkillProficiencies[0] -and $_ -ne $this.BackGround.SkillProficiencies[1] }
-        $this.SkillProficiencies.AddRange([string[]](Get-Random -InputObject $Skills -Count 2))
-        $this.SkillProficiencies.AddRange($this.BackGround.SkillProficiencies)
+        $skillPool = @("Arcana", "History", "Insight", "Investigation", "Medicine", "Nature", "Religion")
+        $available = $skillPool.Where({ -not $this.BackGround.SkillProficiencies.Contains($_) })
+        $count = $available.Count
+        if ($count -ge 2) {
+            $idx1 = $Script:Rng.Next(0, $count)
+            do { $idx2 = $Script:Rng.Next(0, $count) } while ($idx2 -eq $idx1)
+            [void]$this.SkillProficiencies.Add($available[$idx1])
+            [void]$this.SkillProficiencies.Add($available[$idx2])
+        }
+        $this.SkillProficiencies.UnionWith($this.BackGround.SkillProficiencies)
         $this.WeaponProficiencies.AddRange([string[]]("Simple"))
         $this.ArmorTraining.AddRange([string[]]("None"))
         $this.ClassFeatures.AddRange([string[]]("Spellcasting", "Ritual Adept", "Arcane Recovery"))
@@ -714,8 +801,7 @@ class BackgroundFactory {
     }
 
     hidden static [void] Initialize() {
-        $types = [Background].Assembly.GetTypes() | Where-Object { $_.IsSubClassOf([Background]) }
-        [BackgroundFactory]::BackgroundTypes = $types
+        [BackgroundFactory]::BackgroundTypes = $Script:BackgroundTypes
     }
 
     static [Background] CreateRandom() {
@@ -732,8 +818,7 @@ class SpeciesFactory {
     }
 
     hidden static [void] Initialize() {
-        $types = [Humanoid].Assembly.GetTypes() | Where-Object { $_.IsSubClassOf([Humanoid]) }
-        [SpeciesFactory]::SpeciesTypes = $types
+        [SpeciesFactory]::SpeciesTypes = $Script:HumanoidTypes
     }
 
     static [Humanoid] CreateRandom() {
@@ -759,12 +844,11 @@ class DnDClassFactory {
     }
 
     hidden static [void] Initialize() {
-        $types = [DnDClass].Assembly.GetTypes() | Where-Object { $_.IsSubclassOf([DnDClass]) }
-        [DnDClassFactory]::ClassTypes = $types
+        [DnDClassFactory]::ClassTypes = $Script:ClassTypes
     }
 
     static [DnDClass] CreateRandom([Humanoid]$species, [Background]$background) {
-        $randomType = Get-Random -InputObject ([DnDClassFactory]::ClassTypes)
+        $randomType = Get-Random -InputObject $Script:ClassTypes #([DnDClassFactory]::ClassTypes)
         return [Activator]::CreateInstance($randomType, [object[]]@($species, $background))
     }
 }
