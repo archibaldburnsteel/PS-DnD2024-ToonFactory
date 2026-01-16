@@ -1,0 +1,304 @@
+{
+    "Elf": {
+        "Prefix": [
+            "Ae",
+            "Eli",
+            "Fa",
+            "Lae",
+            "Syl",
+            "Tha"
+        ],
+        "Middle": [
+            "ri",
+            "len",
+            "thal",
+            "mir",
+            "sha"
+        ],
+        "Suffix": [
+            "el",
+            "ion",
+            "as",
+            "eth",
+            "ir"
+        ],
+        "Patterns": [
+            "P+S",
+            "P+M+S"
+        ]
+    },
+    "Dwarf": {
+        "Prefix": [
+            "Brok",
+            "Dur",
+            "Gim",
+            "Thra",
+            "Kor"
+        ],
+        "Middle": [
+            "in",
+            "ar",
+            "um"
+        ],
+        "Suffix": [
+            "din",
+            "grum",
+            "rak",
+            "stone",
+            "forge"
+        ],
+        "Patterns": [
+            "P+S",
+            "P+M+S"
+        ]
+    },
+    "Halfling": {
+        "Prefix": [
+            "Pip",
+            "Meri",
+            "Ros",
+            "Bel",
+            "Tali"
+        ],
+        "Middle": [
+            "o",
+            "a",
+            "i"
+        ],
+        "Suffix": [
+            "wick",
+            "foot",
+            "berry",
+            "hill",
+            "son"
+        ],
+        "Patterns": [
+            "P+S",
+            "P+M+S"
+        ]
+    },
+    "Aasimar": {
+        "Prefix": [
+            "Ser",
+            "Ari",
+            "Cael",
+            "Lumi",
+            "Vira"
+        ],
+        "Middle": [
+            "a",
+            "e",
+            "iel",
+            "ara"
+        ],
+        "Suffix": [
+            "el",
+            "ion",
+            "iel",
+            "ara"
+        ],
+        "Patterns": [
+            "P+S",
+            "P+M+S"
+        ]
+    },
+    "Dragonborn": {
+        "Prefix": [
+            "Arj",
+            "Bal",
+            "Dona",
+            "Ghen",
+            "Kriv"
+        ],
+        "Middle": [
+            "ar",
+            "er",
+            "inn",
+            "osh"
+        ],
+        "Suffix": [
+            "an",
+            "ar",
+            "ax",
+            "ius"
+        ],
+        "Patterns": [
+            "P+S",
+            "P+M+S"
+        ]
+    },
+    "Gnome": {
+        "Prefix": [
+            "Bimp",
+            "Donn",
+            "Erky",
+            "Fon",
+            "Gimble",
+            "Nam",
+            "Pip",
+            "Quill",
+            "Wiz",
+            "Zook"
+        ],
+        "Middle": [
+            "al",
+            "er",
+            "ick",
+            "in",
+            "ol"
+        ],
+        "Suffix": [
+            "bee",
+            "corn",
+            "dab",
+            "ick",
+            "pip",
+            "scheen",
+            "tock",
+            "wig"
+        ],
+        "Patterns": [
+            "P+S",
+            "P+M+S"
+        ]
+    },
+    "Goliath": {
+        "Prefix": [
+            "Aukan",
+            "Eilo",
+            "Gauth",
+            "Keo",
+            "Mave",
+            "Paavu",
+            "Thal",
+            "Vaun"
+        ],
+        "Middle": [
+            "ak",
+            "i",
+            "o",
+            "u"
+        ],
+        "Suffix": [
+            "ak",
+            "ath",
+            "ith",
+            "ke",
+            "la",
+            "muth",
+            "tho",
+            "vek"
+        ],
+        "Patterns": [
+            "P+S",
+            "P+M+S"
+        ]
+    },
+    "Orc": {
+        "Prefix": [
+            "Grom",
+            "Thokk",
+            "Morg",
+            "Gar",
+            "Urg",
+            "Kraz",
+            "Zog",
+            "Hul",
+            "dush",
+            "Grak"
+        ],
+        "Middle": [
+            "ga",
+            "o",
+            "uk",
+            "ur",
+            "ka"
+        ],
+        "Suffix": [
+            "mash",
+            "gar",
+            "thor",
+            "kull",
+            "og",
+            "mar",
+            "gash",
+            "nar",
+            "rok"
+        ],
+        "Patterns": [
+            "P+S",
+            "P+M+S"
+        ]
+    },
+    "Human": {
+        "Prefix": [
+            "Al",
+            "Ber",
+            "Ced",
+            "Dan",
+            "Eld",
+            "Fan",
+            "Greg",
+            "Hen",
+            "Is",
+            "Jor"
+        ],
+        "Middle": [
+            "a",
+            "en",
+            "i",
+            "o",
+            "u"
+        ],
+        "Suffix": [
+            "ric",
+            "ward",
+            "ton",
+            "cas",
+            "mond",
+            "ly",
+            "don",
+            "vick",
+            "ther"
+        ],
+        "Patterns": [
+            "P+S",
+            "P+M+S"
+        ]
+    },
+    "Tiefling": {
+        "Prefix": [
+            "Ak",
+            "Bar",
+            "Cri",
+            "Dam",
+            "Ex",
+            "Fen",
+            "Iari",
+            "Leuc",
+            "Meph",
+            "Skon"
+        ],
+        "Middle": [
+            "a",
+            "e",
+            "os",
+            "u",
+            "is"
+        ],
+        "Suffix": [
+            "dos",
+            "kash",
+            "ius",
+            "non",
+            "rin",
+            "tor",
+            "vax",
+            "zis"
+        ],
+        "Patterns": [
+            "P+S",
+            "P+M+S"
+        ]
+    }
+}

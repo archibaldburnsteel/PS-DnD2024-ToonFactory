@@ -166,9 +166,9 @@ class DnDClass {
     [System.Collections.Generic.List[string]]$SavingThrowProficiencies
     [System.Collections.Generic.List[string]]$SkillProficiencies
     [System.Collections.Generic.List[string]]$WeaponProficiencies
-    [PSObject]$Species
+    [Humanoid]$Species
     [System.Collections.Generic.List[string]]$KnownLanguages
-    [PSObject]$BackGround
+    [Background]$BackGround
     [AbilityScore]$Strength
     [AbilityScore]$Dexterity
     [AbilityScore]$Constitution
@@ -198,7 +198,7 @@ class DnDClass {
 
     }
 
-    DnDClass( [PSObject]$species, [PSObject]$background) {
+    DnDClass( [Humanoid]$species, [Background]$background) {
         $this.CharacterClass = $this.GetType().Name
         $this.Species = $species
         $this.BackGround = $background
@@ -276,7 +276,7 @@ class DnDClass {
 
     [string] CharacterSheet() {
         $this.OriginStory = [StoryFactory]::GetOriginStory($this)
-        $this.Name = [NameFactory]::GetName($this.Species.SpeciesName)
+        $this.Name = [NameFactory]::GetName($this.Species)
         function FormatSkillCell($skill) {
             $name = $skill.SkillName.PadRight(16)
             $total = $skill.GetTotal()
@@ -333,8 +333,7 @@ $($this.OriginStory)
 }
 
 Class Barbarian : DnDClass {
-
-    Barbarian([PSObject]$species, [PSObject]$background) : base() {
+    Barbarian([Humanoid]$species, [Background]$background) : base() {
         $this.Species = $species
         $this.BackGround = $background
         $this.PrimaryAbility = 'Strength'
@@ -360,7 +359,7 @@ Class Barbarian : DnDClass {
 
 Class Bard : DnDClass {
 
-    Bard([Object]$species, [Object]$background) : base() {
+    Bard([Humanoid]$species, [Background]$background) : base() {
         $this.Species = $species
         $this.BackGround = $background
         $this.PrimaryAbility = 'Charisma'
@@ -386,7 +385,7 @@ Class Bard : DnDClass {
 
 Class Cleric : DnDClass {
 
-    Cleric([Object]$species, [Object]$background) : base() {
+    Cleric([Humanoid]$species, [Background]$background) : base() {
         $this.Species = $species
         $this.BackGround = $background
         $this.PrimaryAbility = 'Wisdom'
@@ -414,7 +413,7 @@ Class Cleric : DnDClass {
 
 Class Druid : DnDClass {
 
-    Druid([Object]$species, [Object]$background) : base() {
+    Druid([Humanoid]$species, [Background]$background) : base() {
         $this.Species = $species
         $this.BackGround = $background
         $this.PrimaryAbility = 'Wisdom'
@@ -442,7 +441,7 @@ Class Druid : DnDClass {
 
 Class Fighter : DnDClass {
 
-    Fighter([Object]$species, [Object]$background) : base() {
+    Fighter([Humanoid]$species, [Background]$background) : base() {
         $this.Species = $species
         $this.BackGround = $background
         $statchoice = @("Strength", "Dexterity")
@@ -471,7 +470,7 @@ Class Fighter : DnDClass {
 
 Class Monk : DnDClass {
 
-    Monk([Object]$species, [Object]$background) : base() {
+    Monk([Humanoid]$species, [Background]$background) : base() {
         $this.Species = $species
         $this.BackGround = $background
         $statchoice = @("Dexterity", "Wisdom")
@@ -498,7 +497,7 @@ Class Monk : DnDClass {
 
 Class Paladin : DnDClass {
 
-    Paladin([Object]$species, [Object]$background) : base() {
+    Paladin([Humanoid]$species, [Background]$background) : base() {
         $this.Species = $species
         $this.BackGround = $background
         $statchoice = @("Strength", "Charisma")
@@ -525,7 +524,7 @@ Class Paladin : DnDClass {
 
 Class Ranger : DnDClass {
 
-    Ranger([Object]$species, [Object]$background) : base() {
+    Ranger([Humanoid]$species, [Background]$background) : base() {
         $this.Species = $species
         $this.BackGround = $background
         $statchoice = @("Dexterity", "Wisdom")
@@ -552,7 +551,7 @@ Class Ranger : DnDClass {
 
 Class Rogue : DnDClass {
 
-    Rogue([Object]$species, [Object]$background) : base() {
+    Rogue([Humanoid]$species, [Background]$background) : base() {
         $this.Species = $species
         $this.BackGround = $background
         $this.PrimaryAbility = "Dexterity"
@@ -578,7 +577,7 @@ Class Rogue : DnDClass {
 
 Class Sorcerer : DnDClass {
 
-    Sorcerer([Object]$species, [Object]$background) : base() {
+    Sorcerer([Humanoid]$species, [Background]$background) : base() {
         $this.Species = $species
         $this.BackGround = $background
         $this.PrimaryAbility = "Charisma"
@@ -604,7 +603,7 @@ Class Sorcerer : DnDClass {
 
 Class Warlock : DnDClass {
 
-    Warlock([Object]$species, [Object]$background) : base() {
+    Warlock([Humanoid]$species, [Background]$background) : base() {
         $this.Species = $species
         $this.BackGround = $background
         $this.PrimaryAbility = "Charisma"
@@ -630,7 +629,7 @@ Class Warlock : DnDClass {
 
 Class Wizard : DnDClass {
 
-    Wizard([Object]$species, [Object]$background) : base() {
+    Wizard([Humanoid]$species, [Background]$background) : base() {
         $this.Species = $species
         $this.BackGround = $background
         $this.PrimaryAbility = "Intelligence"
@@ -695,7 +694,7 @@ class StoryFactory {
 
         $species = $character.Species.SpeciesName.ToString()
         $class = $character.CharacterClass.ToString()
-        $speciesPart = $speciesHooks[$species]
+        $speciesPart = $speciesHooks[$species.BaseSpecies]
         $classPart = $classHooks[$class]
         $incident = Get-Random -InputObject $incitingIncidents
         return "Born $species, $speciesPart, they became a $class $classPart $incident."
@@ -759,84 +758,51 @@ class DnDClassFactory {
         [DnDClassFactory]::ClassTypes = $types
     }
 
-    static [DnDClass] CreateRandom([PSObject]$species, [PSObject]$background) {
+    static [DnDClass] CreateRandom([Humanoid]$species, [Background]$background) {
         $randomType = Get-Random -InputObject ([DnDClassFactory]::ClassTypes)
         return [Activator]::CreateInstance($randomType, [object[]]@($species, $background))
     }
 }
 
 class NameFactory {
+    static [hashtable]$NameData = $null
 
-    static [string] GetName([string]$species) {
-
-        $nameData = @{
-            "Elf"      = @{
-                Prefix   = @("Ae", "Eli", "Fa", "Lae", "Syl", "Tha")
-                Middle   = @("ri", "len", "thal", "mir", "sha")
-                Suffix   = @("el", "ion", "as", "eth", "ir")
-                Patterns = @(
-                    "P+S",
-                    "P+M+S"
-                )
-            }
-
-            "Dwarf"    = @{
-                Prefix   = @("Brok", "Dur", "Gim", "Thra", "Kor")
-                Middle   = @("in", "ar", "um")
-                Suffix   = @("din", "grum", "rak", "stone", "forge")
-                Patterns = @(
-                    "P+S",
-                    "P+M+S"
-                )
-            }
-
-            "Halfling" = @{
-                Prefix   = @("Pip", "Meri", "Ros", "Bel", "Tali")
-                Middle   = @("o", "a", "i")
-                Suffix   = @("wick", "foot", "berry", "hill", "son")
-                Patterns = @(
-                    "P+S",
-                    "P+M+S"
-                )
-            }
-
-            "Aasimar"  = @{
-                Prefix   = @("Ser", "Ari", "Cael", "Lumi", "Vira")
-                Middle   = @("a", "e", "iel", "ara")
-                Suffix   = @("el", "ion", "iel", "ara")
-                Patterns = @(
-                    "P+S",
-                    "P+M+S"
-                )
+    static [string] GetName([Humanoid]$species) {
+        if ($null -eq [NameFactory]::NameData) {
+            $path = Join-Path $PSScriptRoot "Names.json"
+            if (Test-Path $path) {
+                $json = Get-Content $path -Raw | ConvertFrom-Json
+                [NameFactory]::NameData = @{}
+                foreach ($prop in $json.PSObject.Properties) {
+                    [NameFactory]::NameData[$prop.Name] = $prop.Value
+                }
+            } else {
+                return "Error: Name.json Missing"
             }
         }
-
-        $data = $nameData[$species]
-        if (-not $data) { return "UnknownSpecies" }
-
+        $data = [NameFactory]::NameData[$species.BaseSpecies]
+        if (-not $data) {
+            $data = [NameFactory]::NameData["Human"]
+        }
         $pattern = Get-Random $data.Patterns
-        $prefix = Get-Random $data.Prefix
-        $middle = Get-Random $data.Middle
-        $suffix = Get-Random $data.Suffix
-
-        switch ($pattern) {
-            "P+S" {
-                return "$prefix$suffix"
-                break;
-            }
-            "P+M+S" {
-                return "$prefix$middle$suffix"
-                break;
-            }
-            Default { return "Anonymous" }
+        $parts = @{
+            'P' = Get-Random $data.Prefix
+            'M' = Get-Random $data.Middle
+            'S' = Get-Random $data.Suffix
         }
-        return "No Name"
+        $name = $pattern
+        foreach ($key in $parts.Keys) {
+            $name = $name.Replace($key, $parts[$key])
+        }
+        $cleanName = $name.Replace("+", "").ToLower()
+        return (Get-Culture).TextInfo.ToTitleCase($cleanName)
     }
 }
 
 
 class Humanoid {
     [string]$CreatureType
+    [string]$BaseSpecies
     [string]$SpeciesName
     [string]$Size
     [int]$Speed
@@ -845,6 +811,7 @@ class Humanoid {
     Humanoid() {
         $this.SpecialTraits = [System.Collections.Generic.List[string]]::New()
         $this.CreatureType = "Humanoid"
+        $this.BaseSpecies = $this.GetType().Name
     }
 }
 
@@ -1095,7 +1062,7 @@ class Artisan : Background {
 }
 
 class Charlatan : Background {
-    Charlaton() {
+    Charlatan() {
         $this.AbilityScores.Add("Dexterity")
         $this.AbilityScores.Add("Constitution")
         $this.AbilityScores.Add("Charisma")
