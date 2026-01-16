@@ -678,8 +678,7 @@ class StoryFactory {
             "Ranger"    = "who preferred the ways of the forest animals"
             "Druid"     = "who eschewed civilization to live off Nature's bounty"
             "Paladin"   = "who swore an oath that glows brighter than any torch in the dark"
-            "Bard"      = "who discovered that the right word at the right time can topple
-            thrones"
+            "Bard"      = "who discovered that the right word at the right time can topple thrones"
             "Warlock"   = "who bartered a piece of their soul for a glimpse of the truth"
             "Monk"      = "who found power in the stillness between breaths"
         }
@@ -1256,7 +1255,7 @@ class Sage : Background {
 }
 
 class Sailor : Background {
-    Salior() {
+    Sailor() {
         $this.AbilityScores.Add("Strength")
         $this.AbilityScores.Add("Dexterity")
         $this.AbilityScores.Add("Wisdom")
