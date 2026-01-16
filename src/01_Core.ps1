@@ -662,11 +662,11 @@ class StoryFactory {
             "Human"      = "shaped by the restless churn of crowded cities"
             "Halfling"   = "raised among warm hearths, quick laughter, and quicker hands"
             "Orc"        = "forged in a world that respects only strength"
-            "Dragonborn" = "impelled to break free of their stereotype"
+            "Dragonborn" = "carrying the weight of a draconic lineage that demands greatness"
             "Aasimar"    = "born with a spark of celestial light flickering behind their eyes, guided since childhood by dreams whispered from the Upper Planes"
             "Goliath"    = "hazed for being the smallest of the village they ran away"
-            "Gnome"      = "fascinated by engines and machines they left home to learn more"
-            "Tiefling"   = "confused by their experience in Avernus they left home in search of meaning"
+            "Gnome"      = "possessing a mind that moves faster than their hands can keep up with"
+            "Tiefling"   = "marked by a heritage they did not choose and a world that rarely lets them forget it"
         }
 
         $classHooks = @{
@@ -677,6 +677,11 @@ class StoryFactory {
             "Fighter"   = "who trained until discipline became a second heartbeat"
             "Ranger"    = "who preferred the ways of the forest animals"
             "Druid"     = "who eschewed civilization to live off Nature's bounty"
+            "Paladin"   = "who swore an oath that glows brighter than any torch in the dark"
+            "Bard"      = "who discovered that the right word at the right time can topple
+            thrones"
+            "Warlock"   = "who bartered a piece of their soul for a glimpse of the truth"
+            "Monk"      = "who found power in the stillness between breaths"
         }
 
         $incitingIncidents = @(
@@ -692,10 +697,11 @@ class StoryFactory {
             "after rejecting the destiny their celestial patron insisted upon"
         )
 
-        $species = $character.Species.SpeciesName.ToString()
+        $species = $character.Species.BaseSpecies
         $class = $character.CharacterClass.ToString()
-        $speciesPart = $speciesHooks[$species.BaseSpecies]
+        $speciesPart = $speciesHooks[$species]
         $classPart = $classHooks[$class]
+        if (-not $speciesPart) { $speciesPart = "seeking their place in a vast world" }
         $incident = Get-Random -InputObject $incitingIncidents
         return "Born $species, $speciesPart, they became a $class $classPart $incident."
     }
