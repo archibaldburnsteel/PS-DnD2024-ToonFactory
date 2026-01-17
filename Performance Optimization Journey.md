@@ -123,5 +123,3 @@ This level of optimization wasn't strictly necessary for a character generator, 
 The techniques learned here transfer directly to production scenarios where performance actually impacts user experience.
 
 ---
-
-*For detailed profiling output and analysis, see the discussions in the repository.*
