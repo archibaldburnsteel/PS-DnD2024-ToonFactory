@@ -7,7 +7,7 @@
         "Orc": "forged in a world that respects only strength",
         "Dragonborn": "carrying the weight of a draconic lineage that demands greatness",
         "Aasimar": "born with a spark of celestial light flickering behind their eyes, guided since childhood by dreams whispered from the Upper Planes",
-        "Goliath": "hazed for being the smallest of the village they ran away",
+        "Goliath": "refusing to let their clan define their worth, they walked into the wilds with nothing but stubborn resolve",
         "Gnome": "possessing a mind that moves faster than their hands can keep up with",
         "Tiefling": "marked by a heritage they did not choose and a world that rarely lets them forget it"
     },
@@ -22,7 +22,8 @@
         "Paladin": "who swore an oath that glows brighter than any torch in the dark",
         "Bard": "who discovered that the right word at the right time can topple thrones",
         "Warlock": "who bartered a piece of their soul for a glimpse of the truth",
-        "Monk": "who found power in the stillness between breaths"
+        "Monk": "who found power in the stillness between breaths",
+        "Sorcerer": "marked by a bloodline that woke in them far too early"
     },
     "incitingIncidents": [
         "after a betrayal that carved a scar deeper than any blade",
