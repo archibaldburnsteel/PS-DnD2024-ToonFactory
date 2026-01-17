@@ -206,10 +206,8 @@ class DnDClass {
         $this.ArmorTraining = [System.Collections.Generic.List[string]]::New()
         $this.ClassFeatures = [System.Collections.Generic.List[string]]::New()
         $this.KnownLanguages = [System.Collections.Generic.List[string]]::New()
-        #$languages = [enum]::GetValues([Languages])
         $count = $Script:languages.Count
         $SelectedIndices = New-Object System.Collections.Generic.HashSet[int]
-        #$this.KnownLanguages.AddRange([string[]](Get-Random -InputObject $Script:languages -Count 3))
         while ($SelectedIndices.Count -lt 3) {
             [void]$SelectedIndices.Add($Script:Rng.Next(0, $count))
         }
@@ -234,7 +232,6 @@ class DnDClass {
         $this.Skills = @{}
         $count = $Script:languages.Count
         $SelectedIndices = New-Object System.Collections.Generic.HashSet[int]
-        #$this.KnownLanguages.AddRange([string[]](Get-Random -InputObject $Script:languages -Count 3))
         while ($SelectedIndices.Count -lt 3) {
             [void]$SelectedIndices.Add($Script:Rng.Next(0, $count))
         }
@@ -740,55 +737,31 @@ Class Wizard : DnDClass {
     }
 }
 class StoryFactory {
+    static [hashtable]$StoryData = $null
 
     static [string] GetOriginStory([DnDClass]$character) {
-
-        $speciesHooks = @{
-            "Elf"        = "born beneath ancient boughs older than empires"
-            "Dwarf"      = "raised in the echoing halls of stone and steel"
-            "Human"      = "shaped by the restless churn of crowded cities"
-            "Halfling"   = "raised among warm hearths, quick laughter, and quicker hands"
-            "Orc"        = "forged in a world that respects only strength"
-            "Dragonborn" = "carrying the weight of a draconic lineage that demands greatness"
-            "Aasimar"    = "born with a spark of celestial light flickering behind their eyes, guided since childhood by dreams whispered from the Upper Planes"
-            "Goliath"    = "hazed for being the smallest of the village they ran away"
-            "Gnome"      = "possessing a mind that moves faster than their hands can keep up with"
-            "Tiefling"   = "marked by a heritage they did not choose and a world that rarely lets them forget it"
+        if ($null -eq [StoryFactory]::StoryData ) {
+            $storypath = Join-Path $PSScriptRoot "story.json"
+            if (Test-Path $storypath) {
+                $raw = Get-Content $storypath -Raw
+                $parsed = $raw | ConvertFrom-Json -AsHashtable
+                $cleanTable = [hashtable]::New()
+                foreach ($k in $parsed.Keys) {
+                    $cleanKey = $k.ToString().Trim()
+                    $cleanTable[$cleanKey] = $parsed[$k]
+                }
+                [StoryFactory]::StoryData = $cleanTable
+            } else {
+                return "Error: story.json Missing"
+            }
         }
-
-        $classHooks = @{
-            "Barbarian" = "whose fury was first awakened by a wound the world refused to heal"
-            "Wizard"    = "who discovered forbidden truths long before they understood their cost"
-            "Rogue"     = "who learned early that shadows are often kinder than people"
-            "Cleric"    = "who heard a whisper in the dark and chose to answer"
-            "Fighter"   = "who trained until discipline became a second heartbeat"
-            "Ranger"    = "who preferred the ways of the forest animals"
-            "Druid"     = "who eschewed civilization to live off Nature's bounty"
-            "Paladin"   = "who swore an oath that glows brighter than any torch in the dark"
-            "Bard"      = "who discovered that the right word at the right time can topple thrones"
-            "Warlock"   = "who bartered a piece of their soul for a glimpse of the truth"
-            "Monk"      = "who found power in the stillness between breaths"
-        }
-
-        $incitingIncidents = @(
-            "after a betrayal that carved a scar deeper than any blade",
-            "when destiny tripped over them like a drunk in a tavern",
-            "after witnessing something no one else believed",
-            "when a simple favor spiraled wildly out of control",
-            "after losing a bet they absolutely should not have taken",
-            "after receiving a cryptic vision from their angelic guide that they still struggle to interpret"
-            "when their celestial light accidentally revealed them to enemies who had hunted their bloodline for generations"
-            "after their radiant power flared uncontrollably, forcing them to flee the only home they knew"
-            "when they chose to follow a prophecy meant for someone else entirely"
-            "after rejecting the destiny their celestial patron insisted upon"
-        )
-
+        $stdata = [StoryFactory]::StoryData
         $species = $character.Species.BaseSpecies
         $class = $character.CharacterClass.ToString()
-        $speciesPart = $speciesHooks[$species]
-        $classPart = $classHooks[$class]
+        $speciesPart = $stdata["speciesHooks"][$species]
+        $classPart = $stdata["classHooks"][$class]
         if (-not $speciesPart) { $speciesPart = "seeking their place in a vast world" }
-        $incident = Get-Random -InputObject $incitingIncidents
+        $incident = [StoryFactory]::StoryData.incitingIncidents[$Script:Rng.Next(0, [StoryFactory]::StoryData.incitingIncidents.Count)]
         return "Born $species, $speciesPart, they became a $class $classPart $incident."
     }
 }
@@ -858,13 +831,15 @@ class NameFactory {
 
     static [string] GetName([Humanoid]$species) {
         if ($null -eq [NameFactory]::NameData) {
-            $path = Join-Path $PSScriptRoot "Names.json"
-            if (Test-Path $path) {
-                $json = Get-Content $path -Raw | ConvertFrom-Json
-                [NameFactory]::NameData = @{}
-                foreach ($prop in $json.PSObject.Properties) {
-                    [NameFactory]::NameData[$prop.Name] = $prop.Value
+            $namepath = Join-Path $PSScriptRoot "Names.json"
+            if (Test-Path $namepath) {
+                $raw = Get-Content $namepath -Raw
+                $parsed = $raw | ConvertFrom-Json -AsHashtable
+                $clean = [hashtable]::New()
+                foreach ($key in $parsed.Keys) {
+                    $clean[$key.ToString().Trim()] = $parsed[$key]
                 }
+                [NameFactory]::NameData = $clean
             } else {
                 return "Error: Name.json Missing"
             }
