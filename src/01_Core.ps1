@@ -75,6 +75,29 @@ class AbilityScore {
     }
 }
 
+Class Wallet {
+    [int] hidden $GoldPieces
+
+    Wallet() {
+        $this.GoldPieces = 0
+    }
+
+    Wallet([int]$initialDeposit) {
+        if ($initialDeposit -lt 0) {
+            throw [System.ArgumentOutOfRangeException]::New("value cant be negative")
+        }
+        $this.GoldPieces = $initialDeposit
+    }
+
+    [int]GetBalance() {
+        return $this.GoldPieces
+    }
+
+    [string] ToString() {
+        return ($this.GoldPieces.ToString() + " GP")
+    }
+}
+
 class SavingThrow {
     [string]$AbilityName
     [AbilityScore]$Ability
@@ -177,7 +200,6 @@ class DnDClass {
     [int]$ExperiencePoints
     [int]$HitPointDie
     [System.Collections.Generic.List[string]]$SavingThrowProficiencies
-    #[System.Collections.Generic.List[string]]$SkillProficiencies
     [System.Collections.Generic.HashSet[string]]$SkillProficiencies = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
     [System.Collections.Generic.List[string]]$WeaponProficiencies
     [Humanoid]$Species
@@ -196,6 +218,7 @@ class DnDClass {
     [System.Collections.Generic.List[string]]$ClassFeatures
     [hashtable]$Skills
     [string]$OriginStory
+    [Wallet]$Gold
 
     DnDClass() {
         $this.CharacterClass = $this.GetType().Name
@@ -206,6 +229,7 @@ class DnDClass {
         $this.ArmorTraining = [System.Collections.Generic.List[string]]::New()
         $this.ClassFeatures = [System.Collections.Generic.List[string]]::New()
         $this.KnownLanguages = [System.Collections.Generic.List[string]]::New()
+        $this.StartingEquipment = [System.Collections.Generic.List[string]]::New()
         $count = $Script:languages.Count
         $SelectedIndices = New-Object System.Collections.Generic.HashSet[int]
         while ($SelectedIndices.Count -lt 3) {
@@ -215,7 +239,6 @@ class DnDClass {
             $this.KnownLanguages.Add($Script:languages[$index].ToString())
         }
         $this.Skills = @{}
-
     }
 
     DnDClass( [Humanoid]$species, [Background]$background) {
@@ -229,6 +252,7 @@ class DnDClass {
         $this.TotalAbilityScores = $this.GetTotalAbilityScores()
         $this.SavingThrowProficiencies = [System.Collections.Generic.List[string]]::New()
         $this.SkillProficiencies = [System.Collections.Generic.List[string]]::New()
+        $this.StartingEquipment = [System.Collections.Generic.List[string]]::New()
         $this.Skills = @{}
         $count = $Script:languages.Count
         $SelectedIndices = New-Object System.Collections.Generic.HashSet[int]
@@ -336,10 +360,14 @@ Background: $($this.Background.Name)
   Skills:             $([string]::Join(", ", $this.Background.SkillProficiencies))
   Tools:              $([string]::Join(", ", $this.Background.ToolProficiencies))
   Equipment:          $([string]::Join(", ", $this.Background.Equipment))
+                      $([string]::Join(", ", $this.StartingEquipment))
   Special Traits:     $([string]::Join(", ", $this.Species.SpecialTraits))
 
 Origin:
 $($this.OriginStory)
+
+Gold:
+$($this.Gold.ToString())
 "@
     }
 }
@@ -371,6 +399,8 @@ Class Barbarian : DnDClass {
         $this.WeaponProficiencies.AddRange([string[]]("Simple", "Martial"))
         $this.ArmorTraining.AddRange([string[]]("Light", "Medium", "Shields"))
         $this.ClassFeatures.AddRange([string[]]("Rage", "Unarmored Defense", "Weapon Mastery"))
+        $this.StartingEquipment.AddRange([string[]]("Greataxe", "Handaxe (4)", "Explorer's Pack"))
+        $this.Gold = [Wallet]::New($background.Gold + 15)
         $this.BuildSkills()
     }
 }
@@ -404,6 +434,8 @@ Class Bard : DnDClass {
         $this.ArmorTraining.Add("Light")
         $this.ClassFeatures.AddRange([string[]]("Bardic Inspiration", "Spellcasting"))
         $this.BuildSkills()
+        $this.StartingEquipment.AddRange([string[]]("Leather Armor", "Daggers (2)", "Lyre", "Entertainer's Pack"))
+        $this.Gold = [Wallet]::New($background.Gold + 19)
     }
 }
 
@@ -438,6 +470,8 @@ Class Cleric : DnDClass {
         $DivineOrder = $choices
         $this.ClassFeatures.AddRange([string[]]("Spellcasting", $DivineOrder))
         $this.BuildSkills()
+        $this.StartingEquipment.AddRange([string[]]("Chain Shirt", "Shield", "Mace", "Holy Symbol", "Priest's Pack"))
+        $this.Gold = [Wallet]::New($background.Gold + 7)
     }
 }
 
@@ -472,6 +506,8 @@ Class Druid : DnDClass {
         $primalOrder = Get-Random -InputObject $choice
         $this.ClassFeatures.AddRange([string[]]("Spellcasting", "Druidic", $primalOrder))
         $this.BuildSkills()
+        $this.StartingEquipment.AddRange([string[]]("Leather Armor", "Shield", "Sickle", "Druidic Focus (Quarterstaff)", "Explorer's Pack", "Herbalizm Kit"))
+        $this.Gold = [Wallet]::New($background.Gold + 9)
     }
 }
 
@@ -480,6 +516,7 @@ Class Fighter : DnDClass {
     Fighter([Humanoid]$species, [Background]$background) : base() {
         $this.Species = $species
         $this.BackGround = $background
+        $this.Gold = [Wallet]::New($background.Gold)
         $statchoice = @("Strength", "Dexterity")
         $this.PrimaryAbility = Get-Random -InputObject $statchoice
         $this.HitPointDie = 10
@@ -506,6 +543,13 @@ Class Fighter : DnDClass {
         $choice = @("Archery", "Blind Fighting", "Defense", "Dueling", "Great Weapon", "Interception", "Protection", "Thrown Weapon", "Two-Weapon", "Unarmed")
         $FightingSyle = Get-Random -InputObject $choice
         $this.ClassFeatures.AddRange([string[]]("Second Wind", "Weapon Mastery", $FightingSyle))
+        if ($this.PrimaryAbility -eq 'Strength') {
+            $this.StartingEquipment.AddRange([string[]]("Chain Mail", "Greatsword", "Flail", "Javelins (8)", "Dungeoneer's Pack"))
+            $this.Gold = [Wallet]::New($background.Gold + 4)
+        } else {
+            $this.StartingEquipment.AddRange([string[]]("Studded Leather Armor", "Scimitar", "Shortsword", "Longbow", "Arrows (20)", "Quiver", "Dungeoneer's Pack"))
+            $this.Gold = [Wallet]::New($background.Gold + 11)
+        }
         $this.BuildSkills()
     }
 }
@@ -515,6 +559,7 @@ Class Monk : DnDClass {
     Monk([Humanoid]$species, [Background]$background) : base() {
         $this.Species = $species
         $this.BackGround = $background
+        $this.Gold = [Wallet]::New($background.Gold)
         $statchoice = @("Dexterity", "Wisdom")
         $this.PrimaryAbility = Get-Random -InputObject $statchoice
         $this.HitPointDie = 8
@@ -539,6 +584,8 @@ Class Monk : DnDClass {
         $this.WeaponProficiencies.AddRange([string[]]("Simple", "Martial"))
         $this.ArmorTraining.AddRange([string[]]("None"))
         $this.ClassFeatures.AddRange([string[]]("Martial Arts", "Unarmored Defense"))
+        $this.StartingEquipment.AddRange([string[]]("Spear", "Dagger (5)", "Artisan's Tools", "Explorer's Pack"))
+        $this.Gold = [Wallet]::New($background.Gold + 11)
         $this.BuildSkills()
     }
 }
@@ -548,6 +595,7 @@ Class Paladin : DnDClass {
     Paladin([Humanoid]$species, [Background]$background) : base() {
         $this.Species = $species
         $this.BackGround = $background
+        $this.Gold = [Wallet]::New($background.Gold)
         $statchoice = @("Strength", "Charisma")
         $this.PrimaryAbility = Get-Random -InputObject $statchoice
         $this.HitPointDie = 10
@@ -572,6 +620,8 @@ Class Paladin : DnDClass {
         $this.WeaponProficiencies.AddRange([string[]]("Simple", "Martial"))
         $this.ArmorTraining.AddRange([string[]]("Light", "Medium", "Heavy", "Shields"))
         $this.ClassFeatures.AddRange([string[]]("Lay On Hands", "Spellcasting", "Weapon Mastery"))
+        $this.StartingEquipment.AddRange([string[]]("Chain Mail", "Shield", "Longsword", "Javelins (6)", "Priest's Pack", "Holy Symbol"))
+        $this.Gold = [Wallet]::New($background.Gold + 9)
         $this.BuildSkills()
     }
 }
@@ -581,6 +631,7 @@ Class Ranger : DnDClass {
     Ranger([Humanoid]$species, [Background]$background) : base() {
         $this.Species = $species
         $this.BackGround = $background
+        $this.Gold = [Wallet]::New($background.Gold)
         $statchoice = @("Dexterity", "Wisdom")
         $this.PrimaryAbility = Get-Random -InputObject $statchoice
         $this.HitPointDie = 10
@@ -605,6 +656,8 @@ Class Ranger : DnDClass {
         $this.WeaponProficiencies.AddRange([string[]]("Simple", "Martial"))
         $this.ArmorTraining.AddRange([string[]]("Light", "Medium", "Shields"))
         $this.ClassFeatures.AddRange([string[]]("Spellcasting", "Favored Enemy", "Weapon Mastery"))
+        $this.StartingEquipment.AddRange([string[]]("Studded Leather Armor", "Scimitar", "Shortsword", "Longbow", "Arrows (20)", "Quiver", "Druidic Focus (sprig of mistletoe)", "Explorer's Pack"))
+        $this.Gold = [Wallet]::New($background.Gold + 7)
         $this.BuildSkills()
     }
 }
@@ -614,6 +667,7 @@ Class Rogue : DnDClass {
     Rogue([Humanoid]$species, [Background]$background) : base() {
         $this.Species = $species
         $this.BackGround = $background
+        $this.Gold = [Wallet]::New($background.Gold)
         $this.PrimaryAbility = "Dexterity"
         $this.HitPointDie = 8
         $this.Level = 1
@@ -637,6 +691,8 @@ Class Rogue : DnDClass {
         $this.WeaponProficiencies.AddRange([string[]]("Simple", "Martial"))
         $this.ArmorTraining.AddRange([string[]]("Light"))
         $this.ClassFeatures.AddRange([string[]]("Expertise", "Sneak Attack", "Weapon Mastery", "Thieves' Cant"))
+        $this.StartingEquipment.AddRange([string[]]("Leather Armor", "Daggers (2)", "Shortsword", "Shortbow", "Arrows (20)", "Quiver", "Thieves' Tools", "Burglar's Pack"))
+        $this.Gold = [Wallet]::New($background.Gold + 8)
         $this.BuildSkills()
     }
 }
@@ -646,6 +702,7 @@ Class Sorcerer : DnDClass {
     Sorcerer([Humanoid]$species, [Background]$background) : base() {
         $this.Species = $species
         $this.BackGround = $background
+        $this.Gold = [Wallet]::New($background.Gold)
         $this.PrimaryAbility = "Charisma"
         $this.HitPointDie = 6
         $this.Level = 1
@@ -669,6 +726,8 @@ Class Sorcerer : DnDClass {
         $this.WeaponProficiencies.AddRange([string[]]("Simple"))
         $this.ArmorTraining.AddRange([string[]]("None"))
         $this.ClassFeatures.AddRange([string[]]("Spellcasting", "Innate Sorcery"))
+        $this.StartingEquipment.AddRange([string[]]("Spear", "Daggers(2)", "Arcane Focus (crystal)", "Dungeoneer's Pack"))
+        $this.Gold = [Wallet]::New($background.Gold + 28)
         $this.BuildSkills()
     }
 }
@@ -678,6 +737,7 @@ Class Warlock : DnDClass {
     Warlock([Humanoid]$species, [Background]$background) : base() {
         $this.Species = $species
         $this.BackGround = $background
+        $this.Gold = [Wallet]::New($background.Gold)
         $this.PrimaryAbility = "Charisma"
         $this.HitPointDie = 8
         $this.Level = 1
@@ -701,6 +761,8 @@ Class Warlock : DnDClass {
         $this.WeaponProficiencies.AddRange([string[]]("Simple"))
         $this.ArmorTraining.AddRange([string[]]("Light"))
         $this.ClassFeatures.AddRange([string[]]("Eldrith Invocations", "Pact Magic"))
+        $this.StartingEquipment.AddRange([string[]]("Leather Armor", "Sickle", "Daggers (2)", "Arcane Focus (orb)", "Book (occult lore)", "Scholar's Pack"))
+        $this.Gold = [Wallet]::New($background.Gold + 15)
         $this.BuildSkills()
     }
 }
@@ -710,6 +772,7 @@ Class Wizard : DnDClass {
     Wizard([Humanoid]$species, [Background]$background) : base() {
         $this.Species = $species
         $this.BackGround = $background
+        $this.Gold = [Wallet]::New($background.Gold)
         $this.PrimaryAbility = "Intelligence"
         $this.HitPointDie = 6
         $this.Level = 1
@@ -733,6 +796,8 @@ Class Wizard : DnDClass {
         $this.WeaponProficiencies.AddRange([string[]]("Simple"))
         $this.ArmorTraining.AddRange([string[]]("None"))
         $this.ClassFeatures.AddRange([string[]]("Spellcasting", "Ritual Adept", "Arcane Recovery"))
+        $this.StartingEquipment.AddRange([string[]]("Daggers(2)", "Arcane Focus (Quarterstaff)", "Robe", "Spellbook", "Scholar's Pack"))
+        $this.Gold = [Wallet]::New($background.Gold + 28)
         $this.BuildSkills()
     }
 }
@@ -1079,6 +1144,7 @@ class Background {
     [System.Collections.Generic.List[string]]$SkillProficiencies
     [System.Collections.Generic.List[string]]$ToolProficiencies
     [System.Collections.Generic.List[string]]$Equipment
+    [int]$Gold
 
     Background() {
         $this.Name = $this.GetType().Name
@@ -1103,7 +1169,7 @@ class Acolyte : Background {
         $this.Equipment.Add("Holy Symbol")
         $this.Equipment.Add("Parchment (10 sheets)")
         $this.Equipment.Add("Robe")
-        $this.Equipment.Add("8GP")
+        $this.Gold = 8
     }
 }
 
@@ -1121,7 +1187,7 @@ class Artisan : Background {
         $this.Equipment.Add("$type Tools")
         $this.Equipment.Add("Pouches (2)")
         $this.Equipment.Add("Traveler's Clothes")
-        $this.Equipment.Add("32GP")
+        $this.Gold = 32
     }
 }
 
@@ -1137,7 +1203,7 @@ class Charlatan : Background {
         $this.Equipment.Add("Forgery Kit")
         $this.Equipment.Add("Costume")
         $this.Equipment.Add("Fine Clothes")
-        $this.Equipment.Add("15GP")
+        $this.Gold = 15
     }
 }
 
@@ -1155,7 +1221,7 @@ class Criminal : Background {
         $this.Equipment.Add("Crowbar")
         $this.Equipment.Add("Pouches (2)")
         $this.Equipment.Add("Traveler's Clothes")
-        $this.Equipment.Add("16GP")
+        $this.Gold = 16
     }
 }
 
@@ -1175,7 +1241,7 @@ class Entertainer : Background {
         $this.Equipment.Add("Mirror")
         $this.Equipment.Add("Perfume")
         $this.Equipment.Add("Traveler's Clothes")
-        $this.Equipment.Add("11GP")
+        $this.Gold = 11
     }
 }
 
@@ -1194,7 +1260,7 @@ class Farmer : Background {
         $this.Equipment.Add("Iron Pot")
         $this.Equipment.Add("Shovel")
         $this.Equipment.Add("Traveler's Clothes")
-        $this.Equipment.Add("30GP")
+        $this.Gold = 30
     }
 }
 
@@ -1217,7 +1283,7 @@ class Guard : Background {
         $this.Equipment.Add("Manacles")
         $this.Equipment.Add("Quiver")
         $this.Equipment.Add("Traveler's Clothes")
-        $this.Equipment.Add("12GP")
+        $this.Gold = 12
     }
 }
 
@@ -1237,7 +1303,7 @@ class Guide : Background {
         $this.Equipment.Add("Quiver")
         $this.Equipment.Add("Tent")
         $this.Equipment.Add("Traveler's Clothes")
-        $this.Equipment.Add("3GP")
+        $this.Gold = 3
     }
 }
 
@@ -1257,7 +1323,7 @@ class Hermit : Background {
         $this.Equipment.Add("Lamp")
         $this.Equipment.Add("Oil (3 flasks)")
         $this.Equipment.Add("Traveler's Clothes")
-        $this.Equipment.Add("16GP")
+        $this.Gold = 16
     }
 }
 
@@ -1273,7 +1339,7 @@ class Merchant : Background {
         $this.Equipment.Add("Navigator's Tools")
         $this.Equipment.Add("Pouches (2)")
         $this.Equipment.Add("Traveler's Clothes")
-        $this.Equipment.Add("22GP")
+        $this.Gold = 22
     }
 }
 
@@ -1291,7 +1357,7 @@ class Noble : Background {
         $this.Equipment.Add($gamingSet)
         $this.Equipment.Add("Perfume")
         $this.Equipment.Add("Fine Clothes")
-        $this.Equipment.Add("29GP")
+        $this.Gold = 29
     }
 }
 
@@ -1309,7 +1375,7 @@ class Sage : Background {
         $this.Equipment.Add("Book (history)")
         $this.Equipment.Add("Parchment (8 sheets)")
         $this.Equipment.Add("Robe")
-        $this.Equipment.Add("8GP")
+        $this.Gold = 8
     }
 }
 
@@ -1326,7 +1392,7 @@ class Sailor : Background {
         $this.Equipment.Add("Dagger")
         $this.Equipment.Add("Rope")
         $this.Equipment.Add("Traveler's Cloths")
-        $this.Equipment.Add("20GP")
+        $this.Gold = 20
     }
 }
 
@@ -1344,7 +1410,7 @@ class Scribe : Background {
         $this.Equipment.Add("Lamp")
         $this.Equipment.Add("Oil (3 flasks)")
         $this.Equipment.Add("Parchment (12 sheets)")
-        $this.Equipment.Add("23GP")
+        $this.Gold = 23
     }
 }
 
@@ -1365,7 +1431,7 @@ class Soldier : Background {
         $this.Equipment.Add("Arrows (20)")
         $this.Equipment.Add("Healer's Kit")
         $this.Equipment.Add("Traveler's Clothes")
-        $this.Equipment.Add("14GP")
+        $this.Gold = 14
     }
 }
 
@@ -1386,6 +1452,6 @@ class Wayfarer : Background {
         $this.Equipment.Add("Bedroll")
         $this.Equipment.Add("Pouches (2)")
         $this.Equipment.Add("Traveler's Clothes")
-        $this.Equipment.Add("16GP")
+        $this.Gold = 16
     }
 }
