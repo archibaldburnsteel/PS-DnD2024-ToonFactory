@@ -38,6 +38,8 @@ The `StoryFactory` weaves together Species identity, Class archetypes, and curat
 
 ## 💻 Installation & Usage
 
+1. Install-Module -Name DnDToonFactory -Scope CurrentUser
+           - or -
 1. Clone the repo or download the module folder.
 2. Import the module:
 
