@@ -1,4 +1,4 @@
-# PS-DnD2024-ToonFactory
+# PS-DnD2024-ToonFactory 
 
 > **"I play a lot of one-shots and I found character creation to be  time consuming."**
 > This is my first major PowerShell module. I'm a big DnD fan and built this to learn classes. Feedback is welcome, but please be constructive.
@@ -37,9 +37,11 @@ The `StoryFactory` weaves together Species identity, Class archetypes, and curat
 ---
 
 ## 💻 Installation & Usage
-
+The easiest way to get DnDToonFactory is via the PowerShell Gallery:
 1. Install-Module -Name DnDToonFactory -Scope CurrentUser
-           - or -
+
+Manual Installation
+If you prefer to run the source directly:
 1. Clone the repo or download the module folder.
 2. Import the module:
 
