@@ -30,10 +30,10 @@
     Copyright         = '(c) archibaldburnsteel. All rights reserved.'
 
     # Description of the functionality provided by this module
-    Description       = 'Automated character generator for DnD 2024 ruleset.'
+    Description       = 'Generates random, fully-featured D&D 2024 characters with species, class, background, skills, equipment, and origin stories.'
 
     # Minimum version of the PowerShell engine required by this module
-    PowerShellVersion = '5.1'
+    PowerShellVersion = '7.0'
 
     # Name of the PowerShell host required by this module
     # PowerShellHostName = ''
@@ -95,19 +95,19 @@
         PSData = @{
 
             # Tags applied to this module. These help with module discovery in online galleries.
-            # Tags = @()
+            Tags         = @('DnD', 'DungeonsAndDragons', 'CharacterGenerator', 'Gaming', 'RPG', 'Classes', 'Performance')
 
             # A URL to the license for this module.
-            # LicenseUri = ''
+            LicenseUri   = 'https://github.com/archibaldburnsteel/PS-DnD2024-ToonFactory/blob/main/LICENSE'
 
             # A URL to the main website for this project.
-            # ProjectUri = ''
+            ProjectUri   = 'https://github.com/archibaldburnsteel/PS-DnD2024-ToonFactory'
 
             # A URL to an icon representing this module.
             # IconUri = ''
 
             # ReleaseNotes of this module
-            # ReleaseNotes = ''
+            ReleaseNotes = 'Initial release. Generates random D&D 2024 characters can export hmtl Character Sheet.'
 
             # Prerelease string of this module
             # Prerelease = ''
