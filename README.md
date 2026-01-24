@@ -38,8 +38,9 @@ The `StoryFactory` weaves together Species identity, Class archetypes, and curat
 
 ## 💻 Installation & Usage
 The easiest way to get DnDToonFactory is via the PowerShell Gallery:
-1. Install-Module -Name DnDToonFactory -Scope CurrentUser
-
+```powershell
+Install-Module -Name DnDToonFactory -Scope CurrentUser
+```
 Manual Installation
 If you prefer to run the source directly:
 1. Clone the repo or download the module folder.
@@ -53,3 +54,6 @@ $toon = New-DnDCharacter
 
 # Print the character sheet to the console
 $toon.CharacterSheet()
+
+# Export the Character sheet to html
+$toon.ExportHtmlToFile('c:\temp\toon.html')
