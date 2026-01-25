@@ -348,7 +348,7 @@ Level:   $($this.Level)
 HP:      $($this.HitPointDie + $this.Constitution.GetModifier())
 SPD:     $($this.Species.Speed)
 Size:    $($this.Species.Size)
-Passive Perception: $($this.skills["Perception"].Ability.Score + 10)
+Passive Perception: $($this.Dexterity.Score + 10)
 Initiative: $($this.Dexterity.GetModifier() + 10)
 
 Ability Scores: $($this.TotalAbilityScores)
@@ -577,7 +577,7 @@ $($this.Gold.ToString())
             letter-spacing: 0.05em;
         }
         .stat-value {
-            font-size: 1.4rem;
+            font-size: 1.25rem;
             font-weight: 800;
         }
         .attributes-grid {
