@@ -39,7 +39,7 @@ The `StoryFactory` weaves together Species identity, Class archetypes, and curat
 ## 💻 Installation & Usage
 The easiest way to get DnDToonFactory is via the PowerShell Gallery:
 ```powershell
-Install-Module -Name DnDToonFactory -Scope CurrentUser
+Install-Module -Name PS-DnD2024-ToonFactory -Scope CurrentUser
 ```
 Manual Installation
 If you prefer to run the source directly:
