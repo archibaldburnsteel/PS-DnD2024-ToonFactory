@@ -1,4 +1,4 @@
-# PS-DnD2024-ToonFactory
+# PS-DnD2024-ToonFactory 
 
 > **"I play a lot of one-shots and I found character creation to be  time consuming."**
 > This is my first major PowerShell module. I'm a big DnD fan and built this to learn classes. Feedback is welcome, but please be constructive.
@@ -22,22 +22,56 @@ The `StoryFactory` weaves together Species identity, Class archetypes, and curat
 ## 🎭 Sample Characters
 
 > [!TIP]
-> Each character below was generated entirely by the engine, including the backstory logic.
+> The character below was generated entirely by the engine, including the backstory logic.
 
-**The Celestial Hermit**
-*"Born Aasimar, born with a spark of celestial light flickering behind their eyes... they became a Cleric who heard a whisper in the dark..."*
-* **Key Stats:** WIS 16 (+3), CON 14 (+2)
-* **Origin Feat:** Healer
+=== Exiskash ===
+Species: Tiefling
+Class:   Cleric
+Level:   1
+HP:      11
+SPD:     30
+Size:    Medium
+Passive Perception: 21
+Initiative: 10
 
-**The Reluctant Goliath**
-*"Born Goliath, hazed for being the smallest of the village they ran away... they became a Barbarian whose fury was first awakened by a wound the world refused to heal..."*
-* **Key Stats:** STR 17 (+3), CON 15 (+2)
-* **Origin Feat:** Tough
+Ability Scores: 78
+      STR  +2   (14)   Save: +2
+      DEX  +0   (11)   Save: +0
+      CON  +3   (16)   Save: +3
+      INT  -1   (9)    Save: -1
+      WIS  +4   (19)   Save: +6*
+      CHA  -1   (9)    Save: +1*
 
+Skills:
+  Acrobatics       +0     Insight          +6*    Performance      -1
+  Animal Handling  +4     Intimidation     -1     Persuasion       -1
+  Arcana           -1     Investigation    -1     Religion         +1*
+  Athletics        +2     Medicine         +4     Sleight of Hand  +0
+  Deception        -1     Nature           -1     Stealth          +2*
+  History          +1*    Perception       +4     Survival         +4
+
+Background: Wayfarer
+  Feat:               Lucky
+  Skills:             Insight, Stealth
+  Tools:              Thieves' Tools
+  Equipment:          Thieves' Tools, Daggers (2), dragonchess, Bedroll, Pouches (2), Traveler's Clothes
+                      Chain Shirt, Shield, Mace, Holy Symbol, Priest's Pack
+  Special Traits:     Darkvision, Otherwordly Presence: Thaumaturgy, Resistance: Necrotic, Chill Touch
+
+Origin:
+Born Tiefling, marked by a heritage they did not choose and a world that rarely lets them forget it, they became a Cleric who heard a whisper in the dark and chose to answer after their radiant power flared uncontrollably, forcing them to flee the only home they knew.
+
+Gold:
+23 GP
 ---
 
 ## 💻 Installation & Usage
-
+The easiest way to get DnDToonFactory is via the PowerShell Gallery:
+```powershell
+Install-Module -Name PS-DnD2024-ToonFactory -Scope CurrentUser
+```
+Manual Installation
+If you prefer to run the source directly:
 1. Clone the repo or download the module folder.
 2. Import the module:
 
@@ -49,3 +83,6 @@ $toon = New-DnDCharacter
 
 # Print the character sheet to the console
 $toon.CharacterSheet()
+
+# Export the Character sheet to html
+$toon.ExportHtmlToFile('c:\temp\toon.html')
